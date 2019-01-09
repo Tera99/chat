@@ -1,0 +1,132 @@
+#############################
+#** Program Filename: chatserve
+#** Author: Terezie Schaller
+#** Date:10/28/2018
+#** Description:Server half of a python program using socket API to make a simple client-server chat program.
+#** Input:needs a valid port number
+#** Output:opens a socket and listens on the given port number
+#############################
+
+#REFERENCES
+#CS372 Intro to Computer Networks lecture example
+#https://stackabuse.com/command-line-arguments-in-python/
+#https://www.tutorialspoint.com/python/python_functions.htm
+#https://stackoverflow.com/questions/15587877/run-a-python-script-in-terminal-without-the-python-command
+#!/usr/bin/python
+
+import time
+import sys
+from socket import *
+
+################################
+#** Function: startup()
+#** Description: starts the server listening on the port specified by the command line
+#** Parameters: none
+#** Pre-Conditions: valid port number must be specified on command line
+#** Post-Conditions: socket open and listening on the given port number
+################################
+def startup():
+
+	portnum = int(sys.argv[1])
+
+	serverPort = portnum
+	serverSocket = socket(AF_INET, SOCK_STREAM)
+	serverSocket.bind(('',serverPort))
+
+	serverSocket.listen(1)
+
+	return serverSocket;
+
+################################
+#** Function: sendmsg()
+#** Description: gets user input and sends it to socket, exits program if "\quit" is entered, closes socket
+#** Parameters: none
+#** Pre-Conditions: an open and listening socket connected to the client
+#** Post-Conditions: socket is closed
+################################
+def sendmsg():
+
+	reply = raw_input(name + ">")
+	connectionSocket.send(reply)
+	
+	if reply=="\quit":
+		print"Server is shutting down. Good bye."
+		connectionSocket.close()
+		sys.exit()# if server admin wants to quit then exit program
+	
+	connectionSocket.close()
+	return;
+
+#function for recieve
+#returns an int
+# 0 - messge recieved, do not quit
+# -1 - client wants to quit chat
+#call recieve
+#print
+#check for \quit, close socket and break out of while loop
+################################
+#** Function: getmsg()
+#** Description:recieves a message from the socket, prints it, checks for \quit (not fully implemented, still buggy)
+#** Parameters: none
+#** Pre-Conditions: connected to a socket and client sent a message
+#** Post-Conditions: client message is printed to console
+################################
+def getmsg():
+#	print "This is getmsg() function."
+	newmsg = connectionSocket.recv(1024)
+	print clientName + "> " + newmsg
+	#if client wants to \quit
+	#exit inner while loop for chat
+	#but keep server runnng(eventually)
+	if newmsg=="\quit":
+		print"Client quit the chat. Good bye."
+		connectionSocket.close()
+		return int(-1)
+	return 0;
+
+# BEGIN PROGRAM HERE
+# new to Python, not sure about main
+# code seems to work without it???
+#
+# main()
+#check for correct number of entries in commandline
+if len(sys.argv) != 2:
+	print "Incorrect command line entries. Good bye."
+	sys.exit()
+
+#startup server
+serverSocket = startup()
+name = "Ada"
+portnum = int(sys.argv[1])
+print name + " is running on port " + str(portnum)
+
+#begin the client loop
+while(1):
+	#get client's name and send server's name
+	print 'The server is ready to receive'
+	#wait for client to contact server
+	connectionSocket, addr = serverSocket.accept()
+	clientName = connectionSocket.recv(1024) #get name from client
+	connectionSocket.send(name) #send server name to client
+	connectionSocket.close()
+	
+	#begin the chat loop
+	while(1):
+		#wait for message from client
+		connectionSocket, addr = serverSocket.accept()
+		#get client message
+		client_reply = getmsg();
+		#should exit chat loop but keep server running
+		#still buggy
+		#continues running the server 
+		#but doesnt rename client
+		if client_reply== -1:
+			print"Client is signing off"
+			connectionSocket.close()
+			break #if client wants to quit then exit while loop
+
+		#send reply to client
+		sendmsg()
+	#end chat loop
+#end client loop
+
